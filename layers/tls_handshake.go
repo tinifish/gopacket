@@ -13,15 +13,14 @@ import (
 // TLSHandshakeRecord defines the structure of a Handshare Record
 type TLSHandshakeRecord struct {
 	TLSRecordHeader
+	Raw []byte
 }
 
 // DecodeFromBytes decodes the slice into the TLS struct.
 func (t *TLSHandshakeRecord) decodeFromBytes(h TLSRecordHeader, data []byte, df gopacket.DecodeFeedback) error {
 	// TLS Record Header
-	t.ContentType = h.ContentType
-	t.Version = h.Version
-	t.Length = h.Length
-
+	t.TLSRecordHeader = h
+	t.Raw = data
 	// TODO
 
 	return nil

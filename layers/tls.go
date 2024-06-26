@@ -84,6 +84,8 @@ func (tv TLSVersion) String() string {
 type TLS struct {
 	BaseLayer
 
+	Summaries []string
+
 	// TLS Records
 	ChangeCipherSpec []TLSChangeCipherSpecRecord
 	Handshake        []TLSHandshakeRecord
@@ -164,6 +166,7 @@ func (t *TLS) decodeTLSRecords(data []byte, df gopacket.DecodeFeedback) error {
 			return e
 		}
 		t.ChangeCipherSpec = append(t.ChangeCipherSpec, r)
+		t.Summaries = append(t.Summaries, "Change Cipher Spec")
 	case TLSAlert:
 		var r TLSAlertRecord
 		e := r.decodeFromBytes(h, data[hl:tl], df)
@@ -171,13 +174,21 @@ func (t *TLS) decodeTLSRecords(data []byte, df gopacket.DecodeFeedback) error {
 			return e
 		}
 		t.Alert = append(t.Alert, r)
+		t.Summaries = append(t.Summaries, "Alert")
 	case TLSHandshake:
 		var r TLSHandshakeRecord
-		e := r.decodeFromBytes(h, data[hl:tl], df)
-		if e != nil {
-			return e
+		if len(t.ChangeCipherSpec) > 0 {
+			r.TLSRecordHeader = h
+			r.HandshakeType = TLSHandshakeEncrypted
+			r.Raw = data[hl:tl]
+		} else {
+			e := r.decodeFromBytes(h, data[hl:tl], df)
+			if e != nil {
+				return e
+			}
 		}
 		t.Handshake = append(t.Handshake, r)
+		t.Summaries = append(t.Summaries, getHandshakeTypeString(r.HandshakeType))
 	case TLSApplicationData:
 		var r TLSAppDataRecord
 		e := r.decodeFromBytes(h, data[hl:tl], df)
@@ -185,6 +196,7 @@ func (t *TLS) decodeTLSRecords(data []byte, df gopacket.DecodeFeedback) error {
 			return e
 		}
 		t.AppData = append(t.AppData, r)
+		t.Summaries = append(t.Summaries, "Application Data")
 	}
 
 	if len(data) == tl {

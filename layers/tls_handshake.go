@@ -8,6 +8,7 @@ package layers
 
 import (
 	"errors"
+	"fmt"
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers/tls"
 	"golang.org/x/crypto/cryptobyte"
@@ -16,6 +17,7 @@ import (
 type TLSHandshakeType uint8
 
 const (
+	TLSHandshakeEncrypted          TLSHandshakeType = 0
 	TLSHandshakeClientHello        TLSHandshakeType = 1
 	TLSHandshakeServerHello        TLSHandshakeType = 2
 	TLSHandshakeCertificate        TLSHandshakeType = 11
@@ -24,14 +26,19 @@ const (
 	TLSHandshakeServerHelloDone    TLSHandshakeType = 14
 	TLSHandshakeCertificateVerify  TLSHandshakeType = 15
 	TLSHandshakeClientKeyExchange  TLSHandshakeType = 16
+	TLSHandshakeFinished           TLSHandshakeType = 20
 	TLSHandshakeUnknown            TLSHandshakeType = 255
 )
 
 // TLSHandshakeRecord defines the structure of a Handshare Record
 type TLSHandshakeRecord struct {
 	TLSRecordHeader
-	HandshakeType TLSHandshakeType
-	ClientHello   *tls.ClientHelloInfo `json:"client_hello,omitempty"`
+	HandshakeType      TLSHandshakeType
+	Raw                []byte                      `json:"Raw,omitempty"`
+	ClientHello        *tls.ClientHelloInfo        `json:"client_hello,omitempty"`
+	ServerHello        *tls.ServerHelloInfo        `json:"server_hello,omitempty"`
+	Certificate        *tls.CertificateInfo        `json:"certificate,omitempty"`
+	CertificateRequest *tls.CertificateRequestInfo `json:"certificate_request,omitempty"`
 }
 
 // DecodeFromBytes decodes the slice into the TLS struct.
@@ -56,12 +63,48 @@ func (t *TLSHandshakeRecord) decodeFromBytes(h TLSRecordHeader, data []byte, df 
 	case TLSHandshakeClientHello:
 		t.ClientHello = tls.UnmarshalClientHello(str)
 	case TLSHandshakeServerHello:
+		t.ServerHello = tls.UnmarshalServerHello(str)
 	case TLSHandshakeCertificate:
-	case TLSHandshakeServerKeyExchange:
+		t.Certificate = tls.UnmarshalCertificate(str)
 	case TLSHandshakeCertificateRequest:
-	case TLSHandshakeServerHelloDone:
-	case TLSHandshakeCertificateVerify:
-	case TLSHandshakeClientKeyExchange:
+		t.CertificateRequest = tls.UnmarshalCertificateRequest(str)
+	//case TLSHandshakeServerHelloDone:
+	//case TLSHandshakeCertificateVerify:
+	//case TLSHandshakeServerKeyExchange:
+	//case TLSHandshakeClientKeyExchange:
+	//case TLSHandshakeFinished:
+	default:
+		str.ReadBytes(&t.Raw, int(hs_len))
 	}
 	return nil
+}
+
+func getHandshakeTypeString(t TLSHandshakeType) string {
+	switch t {
+	case TLSHandshakeEncrypted:
+		return "Encrypted Handshake Message"
+	case TLSHandshakeClientHello:
+
+		return "Client Hello"
+	case TLSHandshakeServerHello:
+
+		return "Server Hello"
+	case TLSHandshakeCertificate:
+
+		return "Certificate"
+	case TLSHandshakeCertificateRequest:
+		return "Certificate Request"
+	case TLSHandshakeServerHelloDone:
+		return "Server Hello Done"
+	case TLSHandshakeCertificateVerify:
+		return "Certificate Verify"
+	case TLSHandshakeServerKeyExchange:
+		return "Server Key Exchange"
+	case TLSHandshakeClientKeyExchange:
+		return "Client Key Exchange"
+	case TLSHandshakeFinished:
+		return "Finished"
+	default:
+		return fmt.Sprint("Unknown Handshake Message(", t, ")")
+	}
 }

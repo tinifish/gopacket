@@ -31,8 +31,6 @@ func (m CompressionMethod) MarshalJSON() ([]byte, error) {
 }
 
 type ClientHelloInfo struct {
-	Raw []byte `json:"-"`
-
 	Version            ProtocolVersion     `json:"version"`
 	Random             []byte              `json:"random"`
 	SessionID          []byte              `json:"session_id"`
@@ -50,7 +48,7 @@ type ClientHelloInfo struct {
 }
 
 func UnmarshalClientHello(clientHello cryptobyte.String) *ClientHelloInfo {
-	info := &ClientHelloInfo{Raw: []byte(clientHello)}
+	info := &ClientHelloInfo{}
 
 	if !clientHello.ReadUint16((*uint16)(&info.Version)) {
 		return nil

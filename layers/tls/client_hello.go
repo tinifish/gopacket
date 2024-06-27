@@ -18,6 +18,26 @@ func (v ProtocolVersion) Lo() uint8 {
 func (v ProtocolVersion) MarshalJSON() ([]byte, error) {
 	return json.Marshal([2]uint8{v.Hi(), v.Lo()})
 }
+func (tv ProtocolVersion) String() string {
+	switch tv {
+	default:
+		return "Unknown"
+	case 0x0101:
+		return "TLCP"
+	case 0x0200:
+		return "SSL 2.0"
+	case 0x0300:
+		return "SSL 3.0"
+	case 0x0301:
+		return "TLS 1.0"
+	case 0x0302:
+		return "TLS 1.1"
+	case 0x0303:
+		return "TLS 1.2"
+	case 0x0304:
+		return "TLS 1.3"
+	}
+}
 
 type CompressionMethod uint8
 

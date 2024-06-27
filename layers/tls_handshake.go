@@ -64,6 +64,9 @@ func (t *TLSHandshakeRecord) decodeFromBytes(h TLSRecordHeader, data []byte, df 
 	switch t.HandshakeType {
 	case TLSHandshakeClientHello:
 		t.ClientHello = tls.UnmarshalClientHello(data[4:])
+		if t.ClientHello != nil {
+			t.Version = TLSVersion(t.ClientHello.Version)
+		}
 	case TLSHandshakeServerHello:
 		t.ServerHello = tls.UnmarshalServerHello(data[4:])
 	case TLSHandshakeCertificate:

@@ -49,6 +49,8 @@ func (tv TLSVersion) String() string {
 	switch tv {
 	default:
 		return "Unknown"
+	case 0x0101:
+		return "TLCP"
 	case 0x0200:
 		return "SSL 2.0"
 	case 0x0300:
@@ -84,6 +86,7 @@ func (tv TLSVersion) String() string {
 type TLS struct {
 	BaseLayer
 
+	Version   TLSVersion
 	Summaries []string
 
 	// TLS Records
@@ -156,6 +159,8 @@ func (t *TLS) decodeTLSRecords(data []byte, df gopacket.DecodeFeedback) error {
 		return errors.New("TLS packet length mismatch")
 	}
 
+	t.Version = h.Version
+
 	switch h.ContentType {
 	default:
 		return errors.New("Unknown TLS record type")
@@ -167,6 +172,7 @@ func (t *TLS) decodeTLSRecords(data []byte, df gopacket.DecodeFeedback) error {
 		}
 		t.ChangeCipherSpec = append(t.ChangeCipherSpec, r)
 		t.Summaries = append(t.Summaries, "Change Cipher Spec")
+		t.Version = r.Version
 	case TLSAlert:
 		var r TLSAlertRecord
 		e := r.decodeFromBytes(h, data[hl:tl], df)
@@ -175,6 +181,7 @@ func (t *TLS) decodeTLSRecords(data []byte, df gopacket.DecodeFeedback) error {
 		}
 		t.Alert = append(t.Alert, r)
 		t.Summaries = append(t.Summaries, "Alert")
+		t.Version = r.Version
 	case TLSHandshake:
 		var r TLSHandshakeRecord
 		if len(t.ChangeCipherSpec) > 0 {
@@ -189,6 +196,7 @@ func (t *TLS) decodeTLSRecords(data []byte, df gopacket.DecodeFeedback) error {
 		}
 		t.Handshake = append(t.Handshake, r)
 		t.Summaries = append(t.Summaries, getHandshakeTypeString(r.HandshakeType))
+		t.Version = r.Version
 	case TLSApplicationData:
 		var r TLSAppDataRecord
 		e := r.decodeFromBytes(h, data[hl:tl], df)
@@ -197,6 +205,7 @@ func (t *TLS) decodeTLSRecords(data []byte, df gopacket.DecodeFeedback) error {
 		}
 		t.AppData = append(t.AppData, r)
 		t.Summaries = append(t.Summaries, "Application Data")
+		t.Version = r.Version
 	}
 
 	if len(data) == tl {

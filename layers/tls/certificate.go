@@ -31,6 +31,27 @@ func UnmarshalCertificate(msg cryptobyte.String) *CertificateInfo {
 	return info
 }
 
+type IBCCertificateInfo struct {
+	ID        []byte `json:"id"`
+	Parameter []byte `json:"parameter"`
+}
+
+func UnmarshalIBCCertificate(msg cryptobyte.String) *IBCCertificateInfo {
+	info := &IBCCertificateInfo{}
+	if !msg.ReadUint16LengthPrefixed((*cryptobyte.String)(&info.ID)) {
+		return nil
+	}
+	if !msg.ReadUint24LengthPrefixed((*cryptobyte.String)(&info.Parameter)) {
+		return nil
+	}
+
+	if !msg.Empty() {
+		return nil
+	}
+
+	return info
+}
+
 type CertificateRequestInfo struct {
 	CertificateTypes       []byte `json:"certificate_types"`
 	CertificateAuthorities []byte `json:"certificate_authorities"`

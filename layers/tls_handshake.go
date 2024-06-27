@@ -38,6 +38,7 @@ type TLSHandshakeRecord struct {
 	ClientHello        *tls.ClientHelloInfo        `json:"client_hello,omitempty"`
 	ServerHello        *tls.ServerHelloInfo        `json:"server_hello,omitempty"`
 	Certificate        *tls.CertificateInfo        `json:"certificate,omitempty"`
+	IBCCertificate     *tls.IBCCertificateInfo     `json:"ibc_certificate,omitempty"`
 	CertificateRequest *tls.CertificateRequestInfo `json:"certificate_request,omitempty"`
 }
 
@@ -59,22 +60,24 @@ func (t *TLSHandshakeRecord) decodeFromBytes(h TLSRecordHeader, data []byte, df 
 		df.SetTruncated()
 		return errors.New("TLS handshake length mismatch")
 	}
+	str.ReadBytes(&t.Raw, int(hs_len))
 	switch t.HandshakeType {
 	case TLSHandshakeClientHello:
-		t.ClientHello = tls.UnmarshalClientHello(str)
+		t.ClientHello = tls.UnmarshalClientHello(data[4:])
 	case TLSHandshakeServerHello:
-		t.ServerHello = tls.UnmarshalServerHello(str)
+		t.ServerHello = tls.UnmarshalServerHello(data[4:])
 	case TLSHandshakeCertificate:
-		t.Certificate = tls.UnmarshalCertificate(str)
+		if t.Certificate = tls.UnmarshalCertificate(data[4:]); t.Certificate == nil {
+			t.IBCCertificate = tls.UnmarshalIBCCertificate(data[4:])
+		}
 	case TLSHandshakeCertificateRequest:
-		t.CertificateRequest = tls.UnmarshalCertificateRequest(str)
+		t.CertificateRequest = tls.UnmarshalCertificateRequest(data[4:])
 	//case TLSHandshakeServerHelloDone:
 	//case TLSHandshakeCertificateVerify:
 	//case TLSHandshakeServerKeyExchange:
 	//case TLSHandshakeClientKeyExchange:
 	//case TLSHandshakeFinished:
 	default:
-		str.ReadBytes(&t.Raw, int(hs_len))
 	}
 	return nil
 }

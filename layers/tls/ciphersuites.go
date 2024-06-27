@@ -1109,7 +1109,25 @@ var CipherSuites = map[uint16]struct {
 }{Name: "", Grease: true}, 0xfafa: struct {
 	Name   string
 	Grease bool
-}{Name: "", Grease: true}, 0xe011: struct {
+}{Name: "", Grease: true}, 0xe001: struct {
+	Name   string
+	Grease bool
+}{Name: "ECDHE_SM1_SM3", Grease: false}, 0xe003: struct {
+	Name   string
+	Grease bool
+}{Name: "ECC_SM1_SM3", Grease: false}, 0xe005: struct {
+	Name   string
+	Grease bool
+}{Name: "IBSDH_SM1_SM3", Grease: false}, 0xe007: struct {
+	Name   string
+	Grease bool
+}{Name: "IBC_SM1_SM3", Grease: false}, 0xe009: struct {
+	Name   string
+	Grease bool
+}{Name: "RSA_SM1_SM3", Grease: false}, 0xe00A: struct {
+	Name   string
+	Grease bool
+}{Name: "RSA_SM1_SHA1", Grease: false}, 0xe011: struct {
 	Name   string
 	Grease bool
 }{Name: "ECDHE_SM4_CBC_SM3", Grease: false}, 0xe051: struct {
@@ -1145,4 +1163,7 @@ var CipherSuites = map[uint16]struct {
 }{Name: "RSA_SM4_CBC_SHA256", Grease: false}, 0xe05A: struct {
 	Name   string
 	Grease bool
-}{Name: "RSA_SM4_GCM_SHA256", Grease: false}}
+}{Name: "RSA_SM4_GCM_SHA256", Grease: false}, 0xe01A: struct {
+	Name   string
+	Grease bool
+}{Name: "RSA_SM4_SHA1", Grease: false}}
